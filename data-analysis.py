@@ -60,8 +60,9 @@ def clean_data(df):
     # Validate event types
     df = df[df['event_name'].isin(['page_view', 'page_ping', 'link_click'])]
 
-    # TODO try and remove timestamp outliers for improved accuracy on page view time
-    # TODO validate urls
+    # Next steps:
+    # - try and remove timestamp outliers for improved accuracy on page view time
+    # - validate urls
 
     return df
 
