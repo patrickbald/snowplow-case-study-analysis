@@ -1,4 +1,4 @@
-# Snowplow Case Study Data Analysis
+# Snowplow Case Study
 
 This repo serves to provide event definitions, data cleansing, and data analysis for given use cases pertaining to features of Snowplow.io. 
 
