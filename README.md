@@ -12,6 +12,15 @@ The Data Analysis script serves to cleanse a set of example data gathered by Sno
 ### Product / Customer Journey
 
 ## Data Analysis
-#### Clean
+### Clean
 
-#### Analysis
+Before performing analysis on the data, we need to ensure our data is void of null values, mismatching data type, and has the appropriate columns. 
+
+Cleaning steps:
+- drop duplicates
+- strip values which contain extra whitespace
+- format datetime columns
+- drop rows with null value in essential rows
+- validate event types
+
+### Analysis
