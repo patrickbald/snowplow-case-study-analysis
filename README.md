@@ -14,7 +14,7 @@ The Data Analysis script serves to cleanse a set of example data gathered by Sno
 ## Data Analysis
 ### Clean
 
-Before performing analysis on the data, we need to ensure our data is void of null values, mismatching data type, and has the appropriate columns. 
+Before performing analysis on the data, we need to ensure our data is void of null values, mismatching data type, has the appropriate columns, etc. 
 
 Cleaning steps:
 - drop duplicates
@@ -24,3 +24,11 @@ Cleaning steps:
 - validate event types
 
 ### Analysis
+
+After the data has been cleaned, we can perform certain calculations to extract value from our dataset.
+
+Metrics generated:
+- Session bounce rate
+- Average time per page view
+- Average scroll depth per page view
+- Percentage of users who navigate to discourse.snowplowanalytics.com after starting at snowplowanalytics.com
