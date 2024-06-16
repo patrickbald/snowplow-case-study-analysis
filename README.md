@@ -1,6 +1,11 @@
-### Snowplow Case Study Data Analysis
+# Snowplow Case Study Data Analysis
 
-###### Clean
+## Event and Entity Tracking
+### Search Optimization
 
+### Product / Customer Journey
 
-###### Analysis
+## Data Analysis
+#### Clean
+
+#### Analysis
