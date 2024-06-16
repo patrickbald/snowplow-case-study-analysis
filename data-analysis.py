@@ -20,7 +20,7 @@ def clean_data(df):
         'page_height'
     ]
     
-    drop_cols = [
+    unnecessary_cols = [
         'page_title',
         'referral_url', 
         'geo_country',
@@ -37,7 +37,7 @@ def clean_data(df):
         'os_timezone',
         'link_click_target_url'
     ]
-    df = df.drop(columns=drop_cols)
+    df = df.drop(columns=unnecessary_cols)
 
     # Drop Duplicates
     df.drop_duplicates(inplace=True)
@@ -61,6 +61,7 @@ def clean_data(df):
     df = df[df['event_name'].isin(['page_view', 'page_ping', 'link_click'])]
 
     # TODO try and remove timestamp outliers for improved accuracy on page view time
+    # TODO validate urls
 
     return df
 
@@ -224,10 +225,9 @@ def calc_discourse_percentage(df):
     return
 
 def main():
-    # File Names
-    cleaned_data_name = 'cleaned-dataset-' + str(uuid.uuid4()) + '.csv'
-    # File Paths
     raw_dataset_path = '../snowplow-dataset.csv'
+
+    cleaned_data_name = 'cleaned-dataset-' + str(uuid.uuid4()) + '.csv'
     cleaned_data_path = '../cleaned-datasets/' + cleaned_data_name
 
     print('Ingesting dataset...')
@@ -244,8 +244,6 @@ def main():
     calc_avg_scroll_depth(snowplow_df_cleaned)
     calc_discourse_percentage(snowplow_df_cleaned)
     print('\nDone performing analysis on datset.')
-
-    return
 
 if __name__ == '__main__':
     main()
