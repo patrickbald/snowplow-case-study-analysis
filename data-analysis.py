@@ -115,22 +115,19 @@ def calc_bounce_rate(df):
         Is not a bounce. 
 
     '''
-    df = df.sort_values(by=['session_id', 'dvce_created_tstamp'])
-    
-    session_groups = df.groupby('session_id')
-
-    # Filter for groups which contain only page_view / page_ping, and at least one page_view
-    single_page_view_sessions = session_groups.filter(
-        lambda x: all(e in ['page_view', 'page_ping'] for e in x['event_name']) and any(x['event_name'] == 'page_view')
-    )
+    print('Calculating Session Bounce Rate...')
+    # Determine sessions which contain a link_click user action
+    link_click_groups = df.groupby('session_id')['event_name'].transform(lambda x: 'link_click' in x.values)
+    # Keep only groups which contain a link_click action
+    link_click_groups = df[link_click_groups]
     # Count unique sessions 
-    bounce_count = single_page_view_sessions['session_id'].nunique()
-
+    link_click_count = link_click_groups['session_id'].nunique()
+    print('\tSessions with user action: ', link_click_count)
     total_sessions = df['session_id'].nunique()
+    print('\tTotal Sessions: ', total_sessions)
+    bounce_rate = ((total_sessions - link_click_count) / total_sessions) * 100
 
-    bounce_rate = (bounce_count / total_sessions) * 100
-
-    print('Session Bounce rate: ', bounce_rate)
+    print(f'\tSession Bounce Rate: {bounce_rate}\n')
 
     return
 
@@ -149,18 +146,22 @@ def calc_avg_time_per_page_view(df):
         Improvements:
         - Removal of any timestamp outliers
     '''
+    print('Calculating average time spent per page view...')
     df = df.sort_values(by=['page_view_id', 'dvce_created_tstamp'])
 
+    # Look at page_view and page_ping events
     df = df[df['event_name'].isin(['page_view', 'page_ping'])]
-
-    df['page_view_time_diff'] = df.groupby(['page_view_id'])['dvce_created_tstamp'].diff().shift(-1)
+    # Get diff between each timestamp 
+    df['page_view_time_diff'] = df.groupby(['page_view_id'])['dvce_created_tstamp'].diff()
     df = df.dropna(subset=['page_view_time_diff'])
 
     # Sum of page view time diffs to get total time spent on page view id
     page_view_total = df.groupby(['page_view_id'])['page_view_time_diff'].sum()
-    average_time = page_view_total.median()
+    average_time = page_view_total.mean()
+    median_time = page_view_total.median()
 
-    print('Average time spent on each page view: ', average_time)
+    print(f'\tAverage time spent on each page view: {average_time}')
+    print(f'\tMedian time spent on each page view: {median_time}\n')
 
     return
 
@@ -173,19 +174,20 @@ def calc_avg_scroll_depth(df):
 
         Compute mean scroll depth across all page views
     '''
+    print('Calculating average scroll depth per page view...')
     # Remove rows which are not ping as they do not contain the max scroll depth of the page_view_id
     ping_index = df[df['event_name'] != 'page_ping'].index
     df = df.drop(ping_index)
 
-    # Calculate scroll percentage as scroll max / page height
+    # Calculate scroll percentage as yoffset_max / page height
     df['scroll_percentage'] = (df['pp_yoffset_max'] / df['page_height']) * 100
 
     # Get the max of scroll percentage from group
     scroll_percentage_max = df.groupby('page_view_id')['scroll_percentage'].max()
-
+    # Get average of each group max scroll depth
     avg_scroll_depth_percentage = scroll_percentage_max.mean()
 
-    print('Average scroll depth percentage per page view: ', avg_scroll_depth_percentage)
+    print(f'\tAverage scroll depth percentage per page view: {avg_scroll_depth_percentage}\n')
 
     return
 
@@ -195,6 +197,7 @@ def calc_discourse_percentage(df):
         - Idenitfy users who navigate to discourse.showplowanalytics.com
         - Join users based on user cookie to determine who started at snowplowanalytics, AND also visited discourse.snowplowanalytics.com
     '''
+    print('Calculating percentage of users who start on snowplowanalytics.com and end up on discourse.snowplowanalytics.com...')
     # Filter out page_pings and link_clicks 
     filter_index = df[df['event_name'] != 'page_view'].index
     df = df.drop(filter_index)
@@ -206,6 +209,7 @@ def calc_discourse_percentage(df):
     snowplow_index = snowplow_first_visitors[snowplow_first_visitors['page_urlhostname'] != 'snowplowanalytics.com'].index
     snowplow_first_visitors = snowplow_first_visitors.drop(snowplow_index)
     snowplow_first_visitors_count = snowplow_first_visitors['user_cookie'].nunique()
+    print(f'\tNumber of visitors who start at snowplowanalytics.com: {snowplow_first_visitors_count}')
 
     # Identify users who visit discourse.snowplowanalytics.com at any point 
     discourse_index = df[df['page_urlhostname'] != 'discourse.snowplowanalytics.com'].index
@@ -216,14 +220,17 @@ def calc_discourse_percentage(df):
 
     # Get unique users who start on snowplow and end up on discourse
     users_who_end_up_at_discourse_count = users_who_end_up_at_discourse['user_cookie'].nunique()
+    print(f'\tNumber of visitors who start on snowplowanalytics and end up on discourse.snowplowanalytics.com: {users_who_end_up_at_discourse_count}')
 
     if snowplow_first_visitors_count > 0:
         user_journey_percentage = (users_who_end_up_at_discourse_count / snowplow_first_visitors_count) * 100
-        print('Percentage of users who start on snowplowanalytics.com and end up at discourse.snowplowanalytics.com: ', user_journey_percentage)
+        print(f'\tPercentage of users who start on snowplowanalytics.com and end up at discourse.snowplowanalytics.com: {user_journey_percentage}\n')
     else:
-        print('No users start at snowplowanalytics.com and end up at discourse.snowplowanalytics.com')
+        print('No users start at snowplowanalytics.com and end up at discourse.snowplowanalytics.com\n')
 
     return
+
+# MAIN
 
 def main():
     raw_dataset_path = '../snowplow-dataset.csv'
@@ -244,7 +251,7 @@ def main():
     calc_avg_time_per_page_view(snowplow_df_cleaned)
     calc_avg_scroll_depth(snowplow_df_cleaned)
     calc_discourse_percentage(snowplow_df_cleaned)
-    print('\nDone performing analysis on datset.')
+    print('Done performing analysis on datset.')
 
 if __name__ == '__main__':
     main()
