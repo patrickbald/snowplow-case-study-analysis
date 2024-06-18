@@ -175,11 +175,11 @@ def calc_avg_scroll_depth(df):
         Compute mean scroll depth across all page views
     '''
     print('Calculating average scroll depth per page view...')
-    # Remove rows which are not ping as they do not contain the max scroll depth of the page_view_id
+    # Remove rows which are not ping since they do not contain the max scroll depth of the page_view_id
     ping_index = df[df['event_name'] != 'page_ping'].index
     df = df.drop(ping_index)
 
-    # Calculate scroll percentage as yoffset_max / page height
+    # Calculate scroll percentage for each ping as yoffset_max / page height
     df['scroll_percentage'] = (df['pp_yoffset_max'] / df['page_height']) * 100
 
     # Get the max of scroll percentage from group
@@ -206,8 +206,10 @@ def calc_discourse_percentage(df):
 
     # Identify users who first visit snowplowanalytics.com
     snowplow_first_visitors = df.drop_duplicates(subset=['user_cookie'], keep='first')
+
     snowplow_index = snowplow_first_visitors[snowplow_first_visitors['page_urlhostname'] != 'snowplowanalytics.com'].index
     snowplow_first_visitors = snowplow_first_visitors.drop(snowplow_index)
+
     snowplow_first_visitors_count = snowplow_first_visitors['user_cookie'].nunique()
     print(f'\tNumber of visitors who start at snowplowanalytics.com: {snowplow_first_visitors_count}')
 
